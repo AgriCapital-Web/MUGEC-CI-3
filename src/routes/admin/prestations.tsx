@@ -112,7 +112,7 @@ function PrestationsPage() {
       toast.error("Motif requis pour un rejet"); return;
     }
     const { error } = await supabase.rpc("validate_prestation_step", {
-      _request_id: current.id, _action: action, _motif: motif || null,
+      _request_id: current.id, _action: action, _motif: motif || undefined,
     });
     if (error) { toast.error(error.message); return; }
     toast.success(action === "valide" ? "Validation enregistrée" : "Demande rejetée");

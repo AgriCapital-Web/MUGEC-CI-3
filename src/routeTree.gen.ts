@@ -27,7 +27,11 @@ import { Route as MembreFicheRouteImport } from './routes/membre/fiche'
 import { Route as MembreDocumentsRouteImport } from './routes/membre/documents'
 import { Route as MembreCotisationsRouteImport } from './routes/membre/cotisations'
 import { Route as MembreCarteRouteImport } from './routes/membre/carte'
+import { Route as AdminPrestationsRouteImport } from './routes/admin/prestations'
+import { Route as AdminNotificationsRouteImport } from './routes/admin/notifications'
 import { Route as AdminMiprojetRouteImport } from './routes/admin/miprojet'
+import { Route as AdminMembresRouteImport } from './routes/admin/membres'
+import { Route as AdminCotisationsRouteImport } from './routes/admin/cotisations'
 
 const ScannerRoute = ScannerRouteImport.update({
   id: '/scanner',
@@ -119,9 +123,29 @@ const MembreCarteRoute = MembreCarteRouteImport.update({
   path: '/membre/carte',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminPrestationsRoute = AdminPrestationsRouteImport.update({
+  id: '/admin/prestations',
+  path: '/admin/prestations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
+  id: '/admin/notifications',
+  path: '/admin/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminMiprojetRoute = AdminMiprojetRouteImport.update({
   id: '/admin/miprojet',
   path: '/admin/miprojet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMembresRoute = AdminMembresRouteImport.update({
+  id: '/admin/membres',
+  path: '/admin/membres',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCotisationsRoute = AdminCotisationsRouteImport.update({
+  id: '/admin/cotisations',
+  path: '/admin/cotisations',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -136,7 +160,11 @@ export interface FileRoutesByFullPath {
   '/opportunites': typeof OpportunitesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scanner': typeof ScannerRoute
+  '/admin/cotisations': typeof AdminCotisationsRoute
+  '/admin/membres': typeof AdminMembresRoute
   '/admin/miprojet': typeof AdminMiprojetRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/prestations': typeof AdminPrestationsRoute
   '/membre/carte': typeof MembreCarteRoute
   '/membre/cotisations': typeof MembreCotisationsRoute
   '/membre/documents': typeof MembreDocumentsRoute
@@ -157,7 +185,11 @@ export interface FileRoutesByTo {
   '/opportunites': typeof OpportunitesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scanner': typeof ScannerRoute
+  '/admin/cotisations': typeof AdminCotisationsRoute
+  '/admin/membres': typeof AdminMembresRoute
   '/admin/miprojet': typeof AdminMiprojetRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/prestations': typeof AdminPrestationsRoute
   '/membre/carte': typeof MembreCarteRoute
   '/membre/cotisations': typeof MembreCotisationsRoute
   '/membre/documents': typeof MembreDocumentsRoute
@@ -179,7 +211,11 @@ export interface FileRoutesById {
   '/opportunites': typeof OpportunitesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scanner': typeof ScannerRoute
+  '/admin/cotisations': typeof AdminCotisationsRoute
+  '/admin/membres': typeof AdminMembresRoute
   '/admin/miprojet': typeof AdminMiprojetRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
+  '/admin/prestations': typeof AdminPrestationsRoute
   '/membre/carte': typeof MembreCarteRoute
   '/membre/cotisations': typeof MembreCotisationsRoute
   '/membre/documents': typeof MembreDocumentsRoute
@@ -202,7 +238,11 @@ export interface FileRouteTypes {
     | '/opportunites'
     | '/reset-password'
     | '/scanner'
+    | '/admin/cotisations'
+    | '/admin/membres'
     | '/admin/miprojet'
+    | '/admin/notifications'
+    | '/admin/prestations'
     | '/membre/carte'
     | '/membre/cotisations'
     | '/membre/documents'
@@ -223,7 +263,11 @@ export interface FileRouteTypes {
     | '/opportunites'
     | '/reset-password'
     | '/scanner'
+    | '/admin/cotisations'
+    | '/admin/membres'
     | '/admin/miprojet'
+    | '/admin/notifications'
+    | '/admin/prestations'
     | '/membre/carte'
     | '/membre/cotisations'
     | '/membre/documents'
@@ -244,7 +288,11 @@ export interface FileRouteTypes {
     | '/opportunites'
     | '/reset-password'
     | '/scanner'
+    | '/admin/cotisations'
+    | '/admin/membres'
     | '/admin/miprojet'
+    | '/admin/notifications'
+    | '/admin/prestations'
     | '/membre/carte'
     | '/membre/cotisations'
     | '/membre/documents'
@@ -266,7 +314,11 @@ export interface RootRouteChildren {
   OpportunitesRoute: typeof OpportunitesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ScannerRoute: typeof ScannerRoute
+  AdminCotisationsRoute: typeof AdminCotisationsRoute
+  AdminMembresRoute: typeof AdminMembresRoute
   AdminMiprojetRoute: typeof AdminMiprojetRoute
+  AdminNotificationsRoute: typeof AdminNotificationsRoute
+  AdminPrestationsRoute: typeof AdminPrestationsRoute
   MembreCarteRoute: typeof MembreCarteRoute
   MembreCotisationsRoute: typeof MembreCotisationsRoute
   MembreDocumentsRoute: typeof MembreDocumentsRoute
@@ -405,11 +457,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MembreCarteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/prestations': {
+      id: '/admin/prestations'
+      path: '/admin/prestations'
+      fullPath: '/admin/prestations'
+      preLoaderRoute: typeof AdminPrestationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/notifications': {
+      id: '/admin/notifications'
+      path: '/admin/notifications'
+      fullPath: '/admin/notifications'
+      preLoaderRoute: typeof AdminNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/miprojet': {
       id: '/admin/miprojet'
       path: '/admin/miprojet'
       fullPath: '/admin/miprojet'
       preLoaderRoute: typeof AdminMiprojetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/membres': {
+      id: '/admin/membres'
+      path: '/admin/membres'
+      fullPath: '/admin/membres'
+      preLoaderRoute: typeof AdminMembresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/cotisations': {
+      id: '/admin/cotisations'
+      path: '/admin/cotisations'
+      fullPath: '/admin/cotisations'
+      preLoaderRoute: typeof AdminCotisationsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -426,7 +506,11 @@ const rootRouteChildren: RootRouteChildren = {
   OpportunitesRoute: OpportunitesRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ScannerRoute: ScannerRoute,
+  AdminCotisationsRoute: AdminCotisationsRoute,
+  AdminMembresRoute: AdminMembresRoute,
   AdminMiprojetRoute: AdminMiprojetRoute,
+  AdminNotificationsRoute: AdminNotificationsRoute,
+  AdminPrestationsRoute: AdminPrestationsRoute,
   MembreCarteRoute: MembreCarteRoute,
   MembreCotisationsRoute: MembreCotisationsRoute,
   MembreDocumentsRoute: MembreDocumentsRoute,
