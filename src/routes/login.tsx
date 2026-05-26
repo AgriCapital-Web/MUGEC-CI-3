@@ -1,5 +1,6 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,42 +16,51 @@ export const Route = createFileRoute("/login")({
 });
 
 function Page() {
-  const nav = useNavigate();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  function resolveEmail(input: string): string {
+  async function resolveEmail(input: string): Promise<string | null> {
     const v = input.trim();
     if (v.includes("@")) return v;
-    const lower = v.toLowerCase();
-    // Comptes admin spéciaux (identifiant avec lettres)
-    if (lower === "inoceadmin") return "inoceadmin@miprojet.local";
-    if (lower === "adminmgec") return "adminmgec@mugec-ci.local";
-    // Sinon : membres → numéro de téléphone (uniquement chiffres / +)
-    const digits = v.replace(/[\s.\-()]/g, "");
-    return `${digits}@mugec-phone.local`;
+    const { data, error } = await supabase.rpc("resolve_login_email", { p_identifier: v });
+    if (error) return null;
+    return typeof data === "string" && data.length > 0 ? data : null;
   }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setErrorMsg(null);
     if (!isSupabaseConfigured) {
-      toast.error("Lovable Cloud / Supabase n'est pas encore connecté.");
+      setErrorMsg("Lovable Cloud / Supabase n'est pas encore connecté.");
       return;
     }
     setLoading(true);
-    const email = resolveEmail(identifier);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) toast.error(error.message);
-    else {
+    try {
+      const email = await resolveEmail(identifier);
+      if (!email) {
+        setErrorMsg("Identifiant ou mot de passe incorrect, veuillez réessayer.");
+        return;
+      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        // Toujours afficher un message générique pour ne pas révéler quel champ est faux
+        setErrorMsg("Identifiant ou mot de passe incorrect, veuillez réessayer.");
+        return;
+      }
+      let target = "/membre";
+      try {
+        const { data: path } = await supabase.rpc("current_user_dashboard_path");
+        if (typeof path === "string" && path.length > 0) target = path;
+      } catch {
+        // garde /membre par défaut
+      }
       toast.success("Bienvenue !");
-      // Redirection selon rôle
-      const { data: roles } = await supabase.from("user_roles").select("role").limit(20);
-      const r = (roles || []).map((x: { role: string }) => x.role);
-      if (r.includes("super_admin")) nav({ to: "/admin/miprojet" });
-      else if (r.some((x) => x.startsWith("admin_") || ["president","secretaire_general","tresorier_national","directeur_executif"].includes(x))) nav({ to: "/admin" });
-      else nav({ to: "/membre" });
+      window.location.assign(target);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -64,13 +74,50 @@ function Page() {
             <h1 className="mt-4 text-center text-2xl font-bold">Espace membre</h1>
             <p className="mt-1 text-center text-sm text-muted-foreground">Connectez-vous à votre compte MUGEC-CI</p>
             <form onSubmit={onSubmit} className="mt-6 space-y-4">
+              {errorMsg && (
+                <div
+                  role="alert"
+                  aria-live="assertive"
+                  className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive"
+                >
+                  {errorMsg}
+                </div>
+              )}
               <div>
                 <Label htmlFor="identifier">Identifiant (numéro de téléphone ou identifiant admin)</Label>
-                <Input id="identifier" type="text" required value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="Ex: 0758894363 ou inoceadmin" />
+                <Input
+                  id="identifier"
+                  type="text"
+                  required
+                  value={identifier}
+                  onChange={(e) => { setIdentifier(e.target.value); if (errorMsg) setErrorMsg(null); }}
+                  placeholder="Ex: 0758894363 ou adminmugec"
+                  aria-invalid={errorMsg ? true : undefined}
+                  className={errorMsg ? "border-destructive focus-visible:ring-destructive" : undefined}
+                />
               </div>
               <div>
                 <Label htmlFor="password">Mot de passe</Label>
-                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => { setPassword(e.target.value); if (errorMsg) setErrorMsg(null); }}
+                    className={`pr-10 ${errorMsg ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                    aria-invalid={errorMsg ? true : undefined}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Connexion…" : "Se connecter"}
@@ -86,3 +133,4 @@ function Page() {
     </div>
   );
 }
+
