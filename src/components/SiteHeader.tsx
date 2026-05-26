@@ -3,6 +3,7 @@ import logo from "@/assets/mugec-logo.png";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { QrCode } from "lucide-react";
 
 
 const nav = [
@@ -44,11 +45,13 @@ export function SiteHeader() {
             <>
               <Button asChild variant="outline" size="sm"><Link to="/membre">Mon espace</Link></Button>
               <Button size="sm" variant="ghost" onClick={() => signOut()}>Déconnexion</Button>
+              <Button asChild variant="secondary" size="sm"><Link to="/scanner"><QrCode className="mr-1 h-4 w-4" />Scanner un QR Code</Link></Button>
             </>
           ) : (
             <>
               <Button asChild variant="ghost" size="sm"><Link to="/login">Connexion</Link></Button>
               <Button asChild size="sm"><Link to="/inscription">S'inscrire</Link></Button>
+              <Button asChild variant="secondary" size="sm"><Link to="/scanner"><QrCode className="mr-1 h-4 w-4" />Scanner un QR Code</Link></Button>
             </>
           )}
         </div>
