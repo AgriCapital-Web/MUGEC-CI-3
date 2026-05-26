@@ -3,6 +3,7 @@ import logo from "@/assets/mugec-logo.png";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { QrCode } from "lucide-react";
 
 
 const nav = [
