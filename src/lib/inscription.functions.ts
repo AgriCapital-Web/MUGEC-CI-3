@@ -45,7 +45,7 @@ export const finalizeRegistration = createServerFn({ method: "POST" })
     const { userId } = context;
     const now = new Date().toISOString();
 
-    // 1) Membre — activation immédiate (paiement simulé)
+    // 1) Membre — activation conditionnelle selon le mode paiement
     const { data: member, error: memberErr } = await supabaseAdmin
       .from("members")
       .insert({
@@ -67,18 +67,18 @@ export const finalizeRegistration = createServerFn({ method: "POST" })
         date_embauche: data.date_embauche || null,
         ayants_droit: data.ayants_droit,
         photo_url: data.photo_url ?? null,
-        statut: "actif",
+        statut: isPaymentSandbox ? "actif" : "en_attente",
         paiement_methode: data.paiement_methode,
-        frais_paye: true,
+        frais_paye: isPaymentSandbox,
         payment_reference: data.payment_reference,
-        payment_confirmed_at: now,
-        droits_ouverts_le: now,
-        validation_mode: "automatique",
+        payment_confirmed_at: isPaymentSandbox ? now : null,
+        droits_ouverts_le: isPaymentSandbox ? now : null,
+        validation_mode: isPaymentSandbox ? "automatique" : "manuel",
       })
       .select()
       .single();
     if (memberErr) {
-      console.error("finalizeRegistration: member insert failed", memberErr);
+      console.error("finalizeRegistration: member insert failed", memberErr instanceof Error ? memberErr.message : String(memberErr));
       throw new Error("Échec de la création du compte. Veuillez réessayer.");
     }
 
