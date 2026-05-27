@@ -82,46 +82,48 @@ export const finalizeRegistration = createServerFn({ method: "POST" })
       throw new Error("Échec de la création du compte. Veuillez réessayer.");
     }
 
-    // 2) Souscription d'inscription — payée
-    const { data: sub, error: subErr } = await supabaseAdmin
-      .from("subscriptions")
-      .insert({
+    // 2) Enregistrements financiers — uniquement en mode sandbox
+    if (isPaymentSandbox) {
+      const { data: sub, error: subErr } = await supabaseAdmin
+        .from("subscriptions")
+        .insert({
+          member_id: member.id,
+          type: "inscription",
+          montant_total: 5000,
+          part_mutuelle: 4000,
+          part_miprojet: 1000,
+          statut_paiement: "paye",
+          operateur: data.paiement_methode,
+          reference_transaction: data.payment_reference,
+          paid_at: now,
+        })
+        .select()
+        .single();
+      if (subErr) {
+        console.error("finalizeRegistration: subscription insert failed", subErr instanceof Error ? subErr.message : String(subErr));
+        throw new Error("Échec de l'enregistrement du paiement. Veuillez réessayer.");
+      }
+
+      // 3) Trace MiPROJET (1 000 FCFA) — confirmé
+      await supabaseAdmin.from("transactions_miprojet").insert({
+        subscription_id: sub.id,
+        montant: 1000,
+        statut: "confirme",
+        reference: data.payment_reference,
+        date_virement: now,
+      });
+
+      // 4) Cotisation d'inscription au journal des cotisations
+      await supabaseAdmin.from("cotisations").insert({
         member_id: member.id,
-        type: "inscription",
-        montant_total: 5000,
-        part_mutuelle: 4000,
-        part_miprojet: 1000,
-        statut_paiement: "paye",
-        operateur: data.paiement_methode,
-        reference_transaction: data.payment_reference,
-        paid_at: now,
-      })
-      .select()
-      .single();
-    if (subErr) {
-      console.error("finalizeRegistration: subscription insert failed", subErr);
-      throw new Error("Échec de l'enregistrement du paiement. Veuillez réessayer.");
+        periode: new Date().toISOString().slice(0, 7),
+        montant: 5000,
+        statut: "paye",
+        methode: data.paiement_methode,
+        reference: data.payment_reference,
+        paye_le: now,
+      });
     }
-
-    // 3) Trace MiPROJET (1 000 FCFA) — confirmé
-    await supabaseAdmin.from("transactions_miprojet").insert({
-      subscription_id: sub.id,
-      montant: 1000,
-      statut: "confirme",
-      reference: data.payment_reference,
-      date_virement: now,
-    });
-
-    // 4) Cotisation d'inscription au journal des cotisations
-    await supabaseAdmin.from("cotisations").insert({
-      member_id: member.id,
-      periode: new Date().toISOString().slice(0, 7),
-      montant: 5000,
-      statut: "paye",
-      methode: data.paiement_methode,
-      reference: data.payment_reference,
-      paye_le: now,
-    });
 
     // 5) Audit
     await supabaseAdmin.from("audit_log").insert({
