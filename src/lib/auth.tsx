@@ -5,6 +5,9 @@ import { supabase, isSupabaseConfigured } from "./supabase";
 type Ctx = {
   user: User | null;
   session: Session | null;
+  roles: string[];
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
 };
@@ -20,6 +23,17 @@ export async function getCurrentSupabaseUser(): Promise<User | null> {
     window.setTimeout(() => resolve(storedUser), 800);
   });
   return Promise.race([freshUser, timeout]);
+}
+
+export async function getCurrentDashboardPath(): Promise<string | null> {
+  if (!isSupabaseConfigured) return null;
+  try {
+    const { data, error } = await supabase.rpc("current_user_dashboard_path");
+    if (error || !data) return null;
+    return typeof data === "string" ? data : String(data);
+  } catch {
+    return null;
+  }
 }
 
 function readStoredSession(): Session | null {
@@ -38,8 +52,16 @@ function readStoredSession(): Session | null {
 
 const AuthCtx = createContext<Ctx>({ user: null, session: null, loading: false, signOut: async () => {} });
 
+export const ADMIN_ROLES = [
+  "super_admin", "admin_national", "admin_regional", "admin_local", "agent_saisie",
+  "president", "secretaire_general", "tresorier_national", "commissaire_comptes",
+  "directeur_executif", "comite_controle", "conseil_sages", "secretaire_regional",
+  "tresorier_regional", "delegue_section"
+];
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(() => readStoredSession());
+  const [roles, setRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -66,11 +88,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    if (!session?.user || !isSupabaseConfigured) {
+      setRoles([]);
+      return;
+    }
+    supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", session.user.id)
+      .then(({ data, error }) => {
+        if (!mounted) return;
+        if (error || !data) {
+          setRoles([]);
+          return;
+        }
+        setRoles((data as { role: string }[]).map((row) => String(row.role)));
+      })
+      .catch(() => {
+        if (mounted) setRoles([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [session?.user?.id]);
+
+  const isAdmin = roles.some((role) => ADMIN_ROLES.includes(role));
+  const isSuperAdmin = roles.includes("super_admin");
+
   return (
     <AuthCtx.Provider
       value={{
         user: session?.user ?? null,
         session,
+        roles,
+        isAdmin,
+        isSuperAdmin,
         loading,
         signOut: async () => {
           try {
@@ -84,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           } catch {}
           setSession(null);
+          setRoles([]);
           if (typeof window !== "undefined") {
             window.location.assign("/login");
           }

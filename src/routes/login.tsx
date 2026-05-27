@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -9,9 +9,21 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { loginWithIdentifier } from "@/lib/login.functions";
+import { getCurrentDashboardPath } from "@/lib/auth";
 import logo from "@/assets/mugec-logo.png";
 
 export const Route = createFileRoute("/login")({
+  beforeLoad: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const redirectPath = await getCurrentDashboardPath();
+      if (redirectPath) {
+        throw redirect({ to: redirectPath });
+      }
+    }
+  },
   component: Page,
 });
 
@@ -22,13 +34,7 @@ function Page() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  async function resolveEmail(input: string): Promise<string | null> {
-    const v = input.trim();
-    if (v.includes("@")) return v;
-    const { data, error } = await supabase.rpc("resolve_login_email", { p_identifier: v });
-    if (error) return null;
-    return typeof data === "string" && data.length > 0 ? data : null;
-  }
+  const doLogin = useServerFn(loginWithIdentifier);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,26 +45,32 @@ function Page() {
     }
     setLoading(true);
     try {
-      const email = await resolveEmail(identifier);
-      if (!email) {
+      const res = await doLogin({ data: { identifier, password } });
+      if (!res?.ok) {
         setErrorMsg("Identifiant ou mot de passe incorrect, veuillez réessayer.");
         return;
       }
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        // Toujours afficher un message générique pour ne pas révéler quel champ est faux
+      const { error: setErr } = await supabase.auth.setSession({
+        access_token: res.access_token,
+        refresh_token: res.refresh_token,
+      });
+      if (setErr) {
+        console.error("login setSession failed", setErr);
         setErrorMsg("Identifiant ou mot de passe incorrect, veuillez réessayer.");
         return;
       }
-      let target = "/membre";
-      try {
-        const { data: path } = await supabase.rpc("current_user_dashboard_path");
-        if (typeof path === "string" && path.length > 0) target = path;
-      } catch {
-        // garde /membre par défaut
+      let target = res.dashboard_path || "/membre";
+      if (target === "/membre") {
+        const computed = await getCurrentDashboardPath();
+        if (computed && computed !== "/membre") {
+          target = computed;
+        }
       }
       toast.success("Bienvenue !");
       window.location.assign(target);
+    } catch (err) {
+      console.error("login failed", err);
+      setErrorMsg("Identifiant ou mot de passe incorrect, veuillez réessayer.");
     } finally {
       setLoading(false);
     }
@@ -91,7 +103,7 @@ function Page() {
                   required
                   value={identifier}
                   onChange={(e) => { setIdentifier(e.target.value); if (errorMsg) setErrorMsg(null); }}
-                  placeholder="Ex: 0758894363 ou adminmugec"
+                  placeholder="Ex: 0758894363, mugecadmin ou admininoce"
                   aria-invalid={errorMsg ? true : undefined}
                   className={errorMsg ? "border-destructive focus-visible:ring-destructive" : undefined}
                 />

@@ -9,14 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ScannerRouteImport } from './routes/scanner'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as OpportunitesRouteImport } from './routes/opportunites'
+import { Route as MembreRouteImport } from './routes/membre'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as ForumRouteImport } from './routes/forum'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ActualitesRouteImport } from './routes/actualites'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MembreIndexRouteImport } from './routes/membre/index'
@@ -33,6 +36,11 @@ import { Route as AdminMiprojetRouteImport } from './routes/admin/miprojet'
 import { Route as AdminMembresRouteImport } from './routes/admin/membres'
 import { Route as AdminCotisationsRouteImport } from './routes/admin/cotisations'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScannerRoute = ScannerRouteImport.update({
   id: '/scanner',
   path: '/scanner',
@@ -46,6 +54,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const OpportunitesRoute = OpportunitesRouteImport.update({
   id: '/opportunites',
   path: '/opportunites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembreRoute = MembreRouteImport.update({
+  id: '/membre',
+  path: '/membre',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -73,6 +86,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ActualitesRoute = ActualitesRouteImport.update({
   id: '/actualites',
   path: '/actualites',
@@ -84,14 +102,14 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const MembreIndexRoute = MembreIndexRouteImport.update({
-  id: '/membre/',
-  path: '/membre/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => MembreRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const VerifierMatriculeRoute = VerifierMatriculeRouteImport.update({
   id: '/verifier/$matricule',
@@ -99,67 +117,70 @@ const VerifierMatriculeRoute = VerifierMatriculeRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const MembreProfilRoute = MembreProfilRouteImport.update({
-  id: '/membre/profil',
-  path: '/membre/profil',
-  getParentRoute: () => rootRouteImport,
+  id: '/profil',
+  path: '/profil',
+  getParentRoute: () => MembreRoute,
 } as any)
 const MembreFicheRoute = MembreFicheRouteImport.update({
-  id: '/membre/fiche',
-  path: '/membre/fiche',
-  getParentRoute: () => rootRouteImport,
+  id: '/fiche',
+  path: '/fiche',
+  getParentRoute: () => MembreRoute,
 } as any)
 const MembreDocumentsRoute = MembreDocumentsRouteImport.update({
-  id: '/membre/documents',
-  path: '/membre/documents',
-  getParentRoute: () => rootRouteImport,
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => MembreRoute,
 } as any)
 const MembreCotisationsRoute = MembreCotisationsRouteImport.update({
-  id: '/membre/cotisations',
-  path: '/membre/cotisations',
-  getParentRoute: () => rootRouteImport,
+  id: '/cotisations',
+  path: '/cotisations',
+  getParentRoute: () => MembreRoute,
 } as any)
 const MembreCarteRoute = MembreCarteRouteImport.update({
-  id: '/membre/carte',
-  path: '/membre/carte',
-  getParentRoute: () => rootRouteImport,
+  id: '/carte',
+  path: '/carte',
+  getParentRoute: () => MembreRoute,
 } as any)
 const AdminPrestationsRoute = AdminPrestationsRouteImport.update({
-  id: '/admin/prestations',
-  path: '/admin/prestations',
-  getParentRoute: () => rootRouteImport,
+  id: '/prestations',
+  path: '/prestations',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
-  id: '/admin/notifications',
-  path: '/admin/notifications',
-  getParentRoute: () => rootRouteImport,
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminMiprojetRoute = AdminMiprojetRouteImport.update({
-  id: '/admin/miprojet',
-  path: '/admin/miprojet',
-  getParentRoute: () => rootRouteImport,
+  id: '/miprojet',
+  path: '/miprojet',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminMembresRoute = AdminMembresRouteImport.update({
-  id: '/admin/membres',
-  path: '/admin/membres',
-  getParentRoute: () => rootRouteImport,
+  id: '/membres',
+  path: '/membres',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminCotisationsRoute = AdminCotisationsRouteImport.update({
-  id: '/admin/cotisations',
-  path: '/admin/cotisations',
-  getParentRoute: () => rootRouteImport,
+  id: '/cotisations',
+  path: '/cotisations',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/actualites': typeof ActualitesRoute
+  '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/forum': typeof ForumRoute
   '/inscription': typeof InscriptionRoute
   '/login': typeof LoginRoute
+  '/membre': typeof MembreRouteWithChildren
   '/opportunites': typeof OpportunitesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scanner': typeof ScannerRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/cotisations': typeof AdminCotisationsRoute
   '/admin/membres': typeof AdminMembresRoute
   '/admin/miprojet': typeof AdminMiprojetRoute
@@ -185,6 +206,7 @@ export interface FileRoutesByTo {
   '/opportunites': typeof OpportunitesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scanner': typeof ScannerRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/cotisations': typeof AdminCotisationsRoute
   '/admin/membres': typeof AdminMembresRoute
   '/admin/miprojet': typeof AdminMiprojetRoute
@@ -203,14 +225,17 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/actualites': typeof ActualitesRoute
+  '/admin': typeof AdminRouteWithChildren
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/forum': typeof ForumRoute
   '/inscription': typeof InscriptionRoute
   '/login': typeof LoginRoute
+  '/membre': typeof MembreRouteWithChildren
   '/opportunites': typeof OpportunitesRoute
   '/reset-password': typeof ResetPasswordRoute
   '/scanner': typeof ScannerRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/cotisations': typeof AdminCotisationsRoute
   '/admin/membres': typeof AdminMembresRoute
   '/admin/miprojet': typeof AdminMiprojetRoute
@@ -230,14 +255,17 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/actualites'
+    | '/admin'
     | '/contact'
     | '/faq'
     | '/forum'
     | '/inscription'
     | '/login'
+    | '/membre'
     | '/opportunites'
     | '/reset-password'
     | '/scanner'
+    | '/sitemap.xml'
     | '/admin/cotisations'
     | '/admin/membres'
     | '/admin/miprojet'
@@ -263,6 +291,7 @@ export interface FileRouteTypes {
     | '/opportunites'
     | '/reset-password'
     | '/scanner'
+    | '/sitemap.xml'
     | '/admin/cotisations'
     | '/admin/membres'
     | '/admin/miprojet'
@@ -280,14 +309,17 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/actualites'
+    | '/admin'
     | '/contact'
     | '/faq'
     | '/forum'
     | '/inscription'
     | '/login'
+    | '/membre'
     | '/opportunites'
     | '/reset-password'
     | '/scanner'
+    | '/sitemap.xml'
     | '/admin/cotisations'
     | '/admin/membres'
     | '/admin/miprojet'
@@ -306,31 +338,29 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActualitesRoute: typeof ActualitesRoute
+  AdminRoute: typeof AdminRouteWithChildren
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
   ForumRoute: typeof ForumRoute
   InscriptionRoute: typeof InscriptionRoute
   LoginRoute: typeof LoginRoute
+  MembreRoute: typeof MembreRouteWithChildren
   OpportunitesRoute: typeof OpportunitesRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ScannerRoute: typeof ScannerRoute
-  AdminCotisationsRoute: typeof AdminCotisationsRoute
-  AdminMembresRoute: typeof AdminMembresRoute
-  AdminMiprojetRoute: typeof AdminMiprojetRoute
-  AdminNotificationsRoute: typeof AdminNotificationsRoute
-  AdminPrestationsRoute: typeof AdminPrestationsRoute
-  MembreCarteRoute: typeof MembreCarteRoute
-  MembreCotisationsRoute: typeof MembreCotisationsRoute
-  MembreDocumentsRoute: typeof MembreDocumentsRoute
-  MembreFicheRoute: typeof MembreFicheRoute
-  MembreProfilRoute: typeof MembreProfilRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VerifierMatriculeRoute: typeof VerifierMatriculeRoute
-  AdminIndexRoute: typeof AdminIndexRoute
-  MembreIndexRoute: typeof MembreIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/scanner': {
       id: '/scanner'
       path: '/scanner'
@@ -350,6 +380,13 @@ declare module '@tanstack/react-router' {
       path: '/opportunites'
       fullPath: '/opportunites'
       preLoaderRoute: typeof OpportunitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/membre': {
+      id: '/membre'
+      path: '/membre'
+      fullPath: '/membre'
+      preLoaderRoute: typeof MembreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -387,6 +424,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/actualites': {
       id: '/actualites'
       path: '/actualites'
@@ -403,17 +447,17 @@ declare module '@tanstack/react-router' {
     }
     '/membre/': {
       id: '/membre/'
-      path: '/membre'
+      path: '/'
       fullPath: '/membre/'
       preLoaderRoute: typeof MembreIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof MembreRoute
     }
     '/admin/': {
       id: '/admin/'
-      path: '/admin'
+      path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/verifier/$matricule': {
       id: '/verifier/$matricule'
@@ -424,101 +468,133 @@ declare module '@tanstack/react-router' {
     }
     '/membre/profil': {
       id: '/membre/profil'
-      path: '/membre/profil'
+      path: '/profil'
       fullPath: '/membre/profil'
       preLoaderRoute: typeof MembreProfilRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof MembreRoute
     }
     '/membre/fiche': {
       id: '/membre/fiche'
-      path: '/membre/fiche'
+      path: '/fiche'
       fullPath: '/membre/fiche'
       preLoaderRoute: typeof MembreFicheRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof MembreRoute
     }
     '/membre/documents': {
       id: '/membre/documents'
-      path: '/membre/documents'
+      path: '/documents'
       fullPath: '/membre/documents'
       preLoaderRoute: typeof MembreDocumentsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof MembreRoute
     }
     '/membre/cotisations': {
       id: '/membre/cotisations'
-      path: '/membre/cotisations'
+      path: '/cotisations'
       fullPath: '/membre/cotisations'
       preLoaderRoute: typeof MembreCotisationsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof MembreRoute
     }
     '/membre/carte': {
       id: '/membre/carte'
-      path: '/membre/carte'
+      path: '/carte'
       fullPath: '/membre/carte'
       preLoaderRoute: typeof MembreCarteRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof MembreRoute
     }
     '/admin/prestations': {
       id: '/admin/prestations'
-      path: '/admin/prestations'
+      path: '/prestations'
       fullPath: '/admin/prestations'
       preLoaderRoute: typeof AdminPrestationsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/notifications': {
       id: '/admin/notifications'
-      path: '/admin/notifications'
+      path: '/notifications'
       fullPath: '/admin/notifications'
       preLoaderRoute: typeof AdminNotificationsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/miprojet': {
       id: '/admin/miprojet'
-      path: '/admin/miprojet'
+      path: '/miprojet'
       fullPath: '/admin/miprojet'
       preLoaderRoute: typeof AdminMiprojetRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/membres': {
       id: '/admin/membres'
-      path: '/admin/membres'
+      path: '/membres'
       fullPath: '/admin/membres'
       preLoaderRoute: typeof AdminMembresRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/admin/cotisations': {
       id: '/admin/cotisations'
-      path: '/admin/cotisations'
+      path: '/cotisations'
       fullPath: '/admin/cotisations'
       preLoaderRoute: typeof AdminCotisationsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRoute
     }
   }
 }
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  ActualitesRoute: ActualitesRoute,
-  ContactRoute: ContactRoute,
-  FaqRoute: FaqRoute,
-  ForumRoute: ForumRoute,
-  InscriptionRoute: InscriptionRoute,
-  LoginRoute: LoginRoute,
-  OpportunitesRoute: OpportunitesRoute,
-  ResetPasswordRoute: ResetPasswordRoute,
-  ScannerRoute: ScannerRoute,
+interface AdminRouteChildren {
+  AdminCotisationsRoute: typeof AdminCotisationsRoute
+  AdminMembresRoute: typeof AdminMembresRoute
+  AdminMiprojetRoute: typeof AdminMiprojetRoute
+  AdminNotificationsRoute: typeof AdminNotificationsRoute
+  AdminPrestationsRoute: typeof AdminPrestationsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
   AdminCotisationsRoute: AdminCotisationsRoute,
   AdminMembresRoute: AdminMembresRoute,
   AdminMiprojetRoute: AdminMiprojetRoute,
   AdminNotificationsRoute: AdminNotificationsRoute,
   AdminPrestationsRoute: AdminPrestationsRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface MembreRouteChildren {
+  MembreCarteRoute: typeof MembreCarteRoute
+  MembreCotisationsRoute: typeof MembreCotisationsRoute
+  MembreDocumentsRoute: typeof MembreDocumentsRoute
+  MembreFicheRoute: typeof MembreFicheRoute
+  MembreProfilRoute: typeof MembreProfilRoute
+  MembreIndexRoute: typeof MembreIndexRoute
+}
+
+const MembreRouteChildren: MembreRouteChildren = {
   MembreCarteRoute: MembreCarteRoute,
   MembreCotisationsRoute: MembreCotisationsRoute,
   MembreDocumentsRoute: MembreDocumentsRoute,
   MembreFicheRoute: MembreFicheRoute,
   MembreProfilRoute: MembreProfilRoute,
-  VerifierMatriculeRoute: VerifierMatriculeRoute,
-  AdminIndexRoute: AdminIndexRoute,
   MembreIndexRoute: MembreIndexRoute,
+}
+
+const MembreRouteWithChildren =
+  MembreRoute._addFileChildren(MembreRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  ActualitesRoute: ActualitesRoute,
+  AdminRoute: AdminRouteWithChildren,
+  ContactRoute: ContactRoute,
+  FaqRoute: FaqRoute,
+  ForumRoute: ForumRoute,
+  InscriptionRoute: InscriptionRoute,
+  LoginRoute: LoginRoute,
+  MembreRoute: MembreRouteWithChildren,
+  OpportunitesRoute: OpportunitesRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  ScannerRoute: ScannerRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  VerifierMatriculeRoute: VerifierMatriculeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
