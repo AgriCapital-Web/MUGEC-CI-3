@@ -32,15 +32,12 @@ const memberSchema = z.object({
 });
 
 /**
- * MODE TEST (paiement simulé) — Tant que les API CinetPay/Fedapay ne sont pas
- * connectées, le "paiement" est validé immédiatement côté serveur :
- *  - membre créé avec statut = 'actif', frais_paye = true
- *  - subscription marquée 'paye'
- *  - droits ouverts immédiatement (droits_ouverts_le = now())
- * Quand les vrais webhooks seront branchés, il suffira de retirer le bloc
- * "SIMULATED PAYMENT" pour revenir au mode "en_attente" + activation par
- * webhook.
+ * Finalise l'inscription d'un membre.
+ * En mode production (PAYMENT_SANDBOX !== 'true'), le membre est créé avec
+ * statut 'en_attente' et frais_paye = false en attendant la confirmation
+ * de paiement par webhook. En mode sandbox, le paiement est simulé.
  */
+const isPaymentSandbox = process.env.PAYMENT_SANDBOX === 'true';
 export const finalizeRegistration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => memberSchema.parse(input))
