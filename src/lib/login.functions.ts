@@ -77,7 +77,8 @@ export const loginWithIdentifier = createServerFn({ method: "POST" })
         "dashboard_path_for",
         { _user_id: signIn.user.id },
       );
-      if (!pathErr && typeof path === "string" && path.length > 0) {
+      // Defense in depth: only accept safe relative paths
+      if (!pathErr && typeof path === "string" && path.startsWith("/") && !path.startsWith("//") && !path.includes("://")) {
         dashboard_path = path;
       }
     } catch (err) {
