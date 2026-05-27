@@ -50,7 +50,15 @@ function readStoredSession(): Session | null {
   }
 }
 
-const AuthCtx = createContext<Ctx>({ user: null, session: null, loading: false, signOut: async () => {} });
+const AuthCtx = createContext<Ctx>({
+  user: null,
+  session: null,
+  roles: [],
+  isAdmin: false,
+  isSuperAdmin: false,
+  loading: false,
+  signOut: async () => {},
+});
 
 export const ADMIN_ROLES = [
   "super_admin", "admin_national", "admin_regional", "admin_local", "agent_saisie",
@@ -71,13 +79,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     setSession(readStoredSession());
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session ?? readStoredSession());
-      setLoading(false);
-    }).catch(() => {
-      if (mounted) setLoading(false);
-    });
+    const sessionPromise = supabase.auth.getSession();
+    sessionPromise.then(
+      ({ data }) => {
+        if (!mounted) return;
+        setSession(data.session ?? readStoredSession());
+        setLoading(false);
+      },
+      () => {
+        if (mounted) setLoading(false);
+      },
+    );
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
       setLoading(false);
@@ -98,17 +110,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .from("user_roles")
       .select("role")
       .eq("user_id", session.user.id)
-      .then(({ data, error }) => {
-        if (!mounted) return;
-        if (error || !data) {
-          setRoles([]);
-          return;
-        }
-        setRoles((data as { role: string }[]).map((row) => String(row.role)));
-      })
-      .catch(() => {
-        if (mounted) setRoles([]);
-      });
+      .then(
+        ({ data, error }) => {
+          if (!mounted) return;
+          if (error || !data) {
+            setRoles([]);
+            return;
+          }
+          setRoles((data as { role: string }[]).map((row) => String(row.role)));
+        },
+        () => {
+          if (mounted) setRoles([]);
+        },
+      );
     return () => {
       mounted = false;
     };
