@@ -1,8 +1,5 @@
--- ============================================================
--- MUGEC-CI : Schéma de base de données pour Supabase
--- Ce fichier contient le schéma complet des tables, fonctions et politiques
--- nécessaires au fonctionnement de l'application.
--- ============================================================
+-- Schéma complémentaire MUGEC-CI
+-- Ce fichier est un snapshot complet des objets de base utilisés par l'application.
 
 create extension if not exists pgcrypto;
 
@@ -40,25 +37,19 @@ create or replace function public.has_role(_user_id uuid, _role public.app_role)
 returns boolean
 language sql stable security definer set search_path = public as $$
   select exists (
-    select 1
-    from public.user_roles
-    where user_id = _user_id and role = _role
+    select 1 from public.user_roles where user_id = _user_id and role = _role
   );
 $$;
 
 create or replace function public.is_admin(_user_id uuid)
 returns boolean
 language sql stable security definer set search_path = public as $$
-  select exists (
-    select 1 from public.user_roles
-    where user_id = _user_id
-      and role::text in (
-        'super_admin','admin_national','admin_regional','admin_local','agent_saisie',
-        'president','secretaire_general','tresorier_national','commissaire_comptes',
-        'directeur_executif','comite_controle','conseil_sages','secretaire_regional',
-        'tresorier_regional','delegue_section'
-      )
-  );
+  select exists (select 1 from public.user_roles where user_id = _user_id and role::text in (
+    'super_admin','admin_national','admin_regional','admin_local','agent_saisie',
+    'president','secretaire_general','tresorier_national','commissaire_comptes',
+    'directeur_executif','comite_controle','conseil_sages','secretaire_regional',
+    'tresorier_regional','delegue_section'
+  ));
 $$;
 
 create or replace function public.is_super_admin(_user_id uuid)
@@ -105,8 +96,7 @@ create policy if not exists "members select self or admin" on public.members
 create policy if not exists "members insert self" on public.members
   for insert with check (auth.uid() = user_id);
 create policy if not exists "members update self or admin" on public.members
-  for update using (auth.uid() = user_id or public.is_admin(auth.uid()))
-  with check (auth.uid() = user_id or public.is_admin(auth.uid()));
+  for update using (auth.uid() = user_id or public.is_admin(auth.uid())) with check (auth.uid() = user_id or public.is_admin(auth.uid()));
 create policy if not exists "members delete super admin" on public.members
   for delete to authenticated using (public.is_super_admin(auth.uid()));
 
@@ -298,6 +288,8 @@ create table if not exists public.prestation_validations (
   validated_at timestamptz not null default now()
 );
 alter table public.prestation_validations enable row level security;
+create index if not exists idx_prestation_validations_request_id on public.prestation_validations(request_id);
+create index if not exists idx_prestation_validations_validateur_id on public.prestation_validations(validateur_id);
 create policy if not exists "prest_val select" on public.prestation_validations
   for select to authenticated using (
     exists (
@@ -345,9 +337,7 @@ create table if not exists public.notifications (
 );
 alter table public.notifications enable row level security;
 create policy if not exists "notif owner or admin read" on public.notifications
-  for select to authenticated using (
-    auth.uid() = user_id or public.is_admin(auth.uid())
-  );
+  for select to authenticated using (auth.uid() = user_id or public.is_admin(auth.uid()));
 create policy if not exists "notif owner update" on public.notifications
   for update using (auth.uid() = user_id);
 create policy if not exists "notif admin insert" on public.notifications
@@ -498,35 +488,27 @@ create sequence if not exists public.matricule_seq start 1;
 drop trigger if exists members_matricule on public.members;
 create trigger members_matricule before insert on public.members
   for each row execute function public.generate_matricule();
-
 drop trigger if exists members_updated on public.members;
 create trigger members_updated before update on public.members
   for each row execute function public.tg_updated_at();
-
 drop trigger if exists cotisations_updated on public.cotisations;
 create trigger cotisations_updated before update on public.cotisations
   for each row execute function public.tg_updated_at();
-
 drop trigger if exists news_updated on public.news;
 create trigger news_updated before update on public.news
   for each row execute function public.tg_updated_at();
-
 drop trigger if exists opp_updated on public.opportunites;
 create trigger opp_updated before update on public.opportunites
   for each row execute function public.tg_updated_at();
-
 drop trigger if exists topic_updated on public.forum_topics;
 create trigger topic_updated before update on public.forum_topics
   for each row execute function public.tg_updated_at();
-
 drop trigger if exists payment_sessions_updated on public.payment_sessions;
 create trigger payment_sessions_updated before update on public.payment_sessions
   for each row execute function public.tg_updated_at();
-
 drop trigger if exists notification_templates_updated on public.notification_templates;
 create trigger notification_templates_updated before update on public.notification_templates
   for each row execute function public.tg_updated_at();
-
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created after insert on auth.users
   for each row execute function public.handle_new_user();
