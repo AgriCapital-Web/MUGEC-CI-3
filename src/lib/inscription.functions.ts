@@ -83,8 +83,9 @@ export const finalizeRegistration = createServerFn({ method: "POST" })
     }
 
     // 2) Enregistrements financiers — uniquement en mode sandbox
+    let sub: { id: string } | null = null;
     if (isPaymentSandbox) {
-      const { data: sub, error: subErr } = await supabaseAdmin
+      const { data: subData, error: subErr } = await supabaseAdmin
         .from("subscriptions")
         .insert({
           member_id: member.id,
