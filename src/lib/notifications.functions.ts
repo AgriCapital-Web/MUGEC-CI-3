@@ -167,7 +167,7 @@ export const dispatchNotification = createServerFn({ method: "POST" })
       .eq("event", event)
       .eq("active", true);
     if (error) {
-      console.error("dispatchNotification: template query failed", error);
+      console.error("dispatchNotification: template query failed", error instanceof Error ? error.message : String(error));
       throw new Error("Erreur lors de l'envoi de la notification.");
     }
 

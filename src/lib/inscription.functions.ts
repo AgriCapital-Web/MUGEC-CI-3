@@ -32,15 +32,12 @@ const memberSchema = z.object({
 });
 
 /**
- * MODE TEST (paiement simulé) — Tant que les API CinetPay/Fedapay ne sont pas
- * connectées, le "paiement" est validé immédiatement côté serveur :
- *  - membre créé avec statut = 'actif', frais_paye = true
- *  - subscription marquée 'paye'
- *  - droits ouverts immédiatement (droits_ouverts_le = now())
- * Quand les vrais webhooks seront branchés, il suffira de retirer le bloc
- * "SIMULATED PAYMENT" pour revenir au mode "en_attente" + activation par
- * webhook.
+ * Finalise l'inscription d'un membre.
+ * En mode production (PAYMENT_SANDBOX !== 'true'), le membre est créé avec
+ * statut 'en_attente' et frais_paye = false en attendant la confirmation
+ * de paiement par webhook. En mode sandbox, le paiement est simulé.
  */
+const isPaymentSandbox = process.env.PAYMENT_SANDBOX === 'true';
 export const finalizeRegistration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => memberSchema.parse(input))
@@ -48,7 +45,7 @@ export const finalizeRegistration = createServerFn({ method: "POST" })
     const { userId } = context;
     const now = new Date().toISOString();
 
-    // 1) Membre — activation immédiate (paiement simulé)
+    // 1) Membre — activation conditionnelle selon le mode paiement
     const { data: member, error: memberErr } = await supabaseAdmin
       .from("members")
       .insert({
@@ -70,61 +67,67 @@ export const finalizeRegistration = createServerFn({ method: "POST" })
         date_embauche: data.date_embauche || null,
         ayants_droit: data.ayants_droit,
         photo_url: data.photo_url ?? null,
-        statut: "actif",
+        statut: isPaymentSandbox ? "actif" : "en_attente",
         paiement_methode: data.paiement_methode,
-        frais_paye: true,
+        frais_paye: isPaymentSandbox,
         payment_reference: data.payment_reference,
-        payment_confirmed_at: now,
-        droits_ouverts_le: now,
-        validation_mode: "automatique",
+        payment_confirmed_at: isPaymentSandbox ? now : null,
+        droits_ouverts_le: isPaymentSandbox ? now : null,
+        validation_mode: isPaymentSandbox ? "automatique" : "manuel",
       })
       .select()
       .single();
     if (memberErr) {
-      console.error("finalizeRegistration: member insert failed", memberErr);
+      console.error("finalizeRegistration: member insert failed", memberErr instanceof Error ? memberErr.message : String(memberErr));
       throw new Error("Échec de la création du compte. Veuillez réessayer.");
     }
 
-    // 2) Souscription d'inscription — payée
-    const { data: sub, error: subErr } = await supabaseAdmin
-      .from("subscriptions")
-      .insert({
+    // 2) Enregistrements financiers — uniquement en mode sandbox
+    let sub: { id: string } | null = null;
+    if (isPaymentSandbox) {
+      const { data: subData, error: subErr } = await supabaseAdmin
+        .from("subscriptions")
+        .insert({
+          member_id: member.id,
+          type: "inscription",
+          montant_total: 5000,
+          part_mutuelle: 4000,
+          part_miprojet: 1000,
+          statut_paiement: "paye",
+          operateur: data.paiement_methode,
+          reference_transaction: data.payment_reference,
+          paid_at: now,
+        })
+        .select()
+        .single();
+      if (subErr) {
+        console.error("finalizeRegistration: subscription insert failed", subErr instanceof Error ? subErr.message : String(subErr));
+        throw new Error("Échec de l'enregistrement du paiement. Veuillez réessayer.");
+      }
+      sub = subData;
+
+      // 3) Trace MiPROJET (1 000 FCFA) — confirmé
+      if (sub) {
+        await supabaseAdmin.from("transactions_miprojet").insert({
+          subscription_id: sub.id,
+          montant: 1000,
+          statut: "confirme",
+          reference: data.payment_reference,
+          date_virement: now,
+        });
+      }
+
+      // 4) Cotisation d'inscription au journal des cotisations
+      await supabaseAdmin.from("cotisations").insert({
         member_id: member.id,
-        type: "inscription",
-        montant_total: 5000,
-        part_mutuelle: 4000,
-        part_miprojet: 1000,
-        statut_paiement: "paye",
-        operateur: data.paiement_methode,
-        reference_transaction: data.payment_reference,
-        paid_at: now,
-      })
-      .select()
-      .single();
-    if (subErr) {
-      console.error("finalizeRegistration: subscription insert failed", subErr);
-      throw new Error("Échec de l'enregistrement du paiement. Veuillez réessayer.");
+        periode: new Date().toISOString().slice(0, 7),
+        montant: 5000,
+        statut: "paye",
+        methode: data.paiement_methode,
+        reference: data.payment_reference,
+        paye_le: now,
+      });
     }
-
-    // 3) Trace MiPROJET (1 000 FCFA) — confirmé
-    await supabaseAdmin.from("transactions_miprojet").insert({
-      subscription_id: sub.id,
-      montant: 1000,
-      statut: "confirme",
-      reference: data.payment_reference,
-      date_virement: now,
-    });
-
-    // 4) Cotisation d'inscription au journal des cotisations
-    await supabaseAdmin.from("cotisations").insert({
-      member_id: member.id,
-      periode: new Date().toISOString().slice(0, 7),
-      montant: 5000,
-      statut: "paye",
-      methode: data.paiement_methode,
-      reference: data.payment_reference,
-      paye_le: now,
-    });
 
     // 5) Audit
     await supabaseAdmin.from("audit_log").insert({
@@ -164,5 +167,5 @@ export const finalizeRegistration = createServerFn({ method: "POST" })
       console.error("notif dispatch failed", e);
     }
 
-    return { member, subscription: sub };
+    return { member, subscription: isPaymentSandbox ? sub : null };
   });
