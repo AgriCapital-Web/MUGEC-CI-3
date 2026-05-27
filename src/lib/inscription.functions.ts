@@ -163,5 +163,5 @@ export const finalizeRegistration = createServerFn({ method: "POST" })
       console.error("notif dispatch failed", e);
     }
 
-    return { member, subscription: sub };
+    return { member, subscription: isPaymentSandbox ? sub : null };
   });
