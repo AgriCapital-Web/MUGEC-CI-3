@@ -104,15 +104,18 @@ export const finalizeRegistration = createServerFn({ method: "POST" })
         console.error("finalizeRegistration: subscription insert failed", subErr instanceof Error ? subErr.message : String(subErr));
         throw new Error("Échec de l'enregistrement du paiement. Veuillez réessayer.");
       }
+      sub = subData;
 
       // 3) Trace MiPROJET (1 000 FCFA) — confirmé
-      await supabaseAdmin.from("transactions_miprojet").insert({
-        subscription_id: sub.id,
-        montant: 1000,
-        statut: "confirme",
-        reference: data.payment_reference,
-        date_virement: now,
-      });
+      if (sub) {
+        await supabaseAdmin.from("transactions_miprojet").insert({
+          subscription_id: sub.id,
+          montant: 1000,
+          statut: "confirme",
+          reference: data.payment_reference,
+          date_virement: now,
+        });
+      }
 
       // 4) Cotisation d'inscription au journal des cotisations
       await supabaseAdmin.from("cotisations").insert({
