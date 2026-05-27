@@ -81,7 +81,7 @@ export const loginWithIdentifier = createServerFn({ method: "POST" })
         dashboard_path = path;
       }
     } catch (err) {
-      console.error("loginWithIdentifier: dashboard_path_for failed", err);
+      console.error("loginWithIdentifier: dashboard_path_for failed", err instanceof Error ? err.message : String(err));
     }
 
     return {
