@@ -24,19 +24,45 @@ export const loginWithIdentifier = createServerFn({ method: "POST" })
     const generic = { ok: false as const, error: "invalid_credentials" };
 
     let email: string | null = null;
-    if (data.identifier.includes("@")) {
-      email = data.identifier;
+    const identifier = data.identifier.trim();
+
+    if (identifier.includes("@")) {
+      email = identifier;
     } else {
-      const { data: resolved, error } = await supabaseAdmin.rpc(
-        "resolve_login_email",
-        { p_identifier: data.identifier },
-      );
-      if (error) {
-        console.error("loginWithIdentifier: resolve failed", error);
-        return generic;
+      const lowerIdentifier = identifier.toLowerCase();
+      if (lowerIdentifier === "mugecadmin") {
+        email = "adminmgec@mugec-ci.local";
+      } else if (lowerIdentifier === "admininoce") {
+        email = "admininoce@miprojet.local";
+      } else {
+        const { data: resolved, error } = await supabaseAdmin.rpc(
+          "resolve_login_email",
+          { p_identifier: identifier },
+        );
+        if (error) {
+          console.error("loginWithIdentifier: resolve failed", error);
+        }
+        if (!email && typeof resolved === "string" && resolved.length > 0) {
+          email = resolved;
+        }
       }
-      if (typeof resolved === "string" && resolved.length > 0) email = resolved;
     }
+
+    if (!email) {
+      const digits = identifier.replace(/[^0-9]/g, "");
+      if (digits.length >= 6) {
+        const { data: memberData, error: memberError } = await supabaseAdmin
+          .from("members")
+          .select("email")
+          .eq("telephone", digits)
+          .limit(1)
+          .maybeSingle();
+        if (!memberError && memberData?.email) {
+          email = memberData.email;
+        }
+      }
+    }
+
     if (!email) return generic;
 
     const SUPABASE_URL = process.env.SUPABASE_URL!;
