@@ -106,7 +106,7 @@ function Page() {
                   required
                   value={identifier}
                   onChange={(e) => { setIdentifier(e.target.value); if (errorMsg) setErrorMsg(null); }}
-                  placeholder="Ex: 0758894363, mugecadmin ou admininoce"
+                  placeholder="Téléphone, email ou identifiant"
                   aria-invalid={errorMsg ? true : undefined}
                   className={errorMsg ? "border-destructive focus-visible:ring-destructive" : undefined}
                 />
