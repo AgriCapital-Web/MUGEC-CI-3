@@ -29,22 +29,15 @@ export const loginWithIdentifier = createServerFn({ method: "POST" })
     if (identifier.includes("@")) {
       email = identifier;
     } else {
-      const lowerIdentifier = identifier.toLowerCase();
-      if (lowerIdentifier === "mugecadmin") {
-        email = "adminmgec@mugec-ci.local";
-      } else if (lowerIdentifier === "admininoce") {
-        email = "admininoce@miprojet.local";
-      } else {
-        const { data: resolved, error } = await supabaseAdmin.rpc(
-          "resolve_login_email",
-          { p_identifier: identifier },
-        );
-        if (error) {
-          console.error("loginWithIdentifier: resolve failed", error);
-        }
-        if (!email && typeof resolved === "string" && resolved.length > 0) {
-          email = resolved;
-        }
+      const { data: resolved, error } = await supabaseAdmin.rpc(
+        "resolve_login_email",
+        { p_identifier: identifier },
+      );
+      if (error) {
+        console.error("loginWithIdentifier: resolve failed", error instanceof Error ? error.message : String(error));
+      }
+      if (typeof resolved === "string" && resolved.length > 0) {
+        email = resolved;
       }
     }
 
