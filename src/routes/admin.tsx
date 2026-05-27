@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
+import { getAuthorizedArea } from "@/lib/admin-guard.functions";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -9,28 +10,19 @@ export const Route = createFileRoute("/admin")({
       throw redirect({ to: "/login" });
     }
 
-    const { data: path, error } = await supabase.rpc("current_user_dashboard_path");
-    if (!error && typeof path === "string") {
-      if (path === "/membre") {
+    // Server-side role verification (auth middleware validates the JWT and
+    // role lookup runs through the user-scoped Supabase client / RLS).
+    try {
+      const result = await getAuthorizedArea();
+      if (result.area === "membre") {
         throw redirect({ to: "/membre" });
       }
+      // super_admin can access /admin as well; no extra redirect needed.
       return;
-    }
-
-    // RPC failed, fall back to a direct role query.
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", session.user.id);
-    const allowed = new Set([
-      "super_admin", "admin_national", "admin_regional", "admin_local", "agent_saisie",
-      "president", "secretaire_general", "tresorier_national", "commissaire_comptes",
-      "directeur_executif", "comite_controle", "conseil_sages", "secretaire_regional",
-      "tresorier_regional", "delegue_section",
-    ]);
-    const isAdmin = (roles ?? []).some((r) => allowed.has(String(r.role)));
-    if (!isAdmin) {
-      throw redirect({ to: "/membre" });
+    } catch (e: any) {
+      // Re-throw router redirects
+      if (e && typeof e === "object" && "to" in e) throw e;
+      throw redirect({ to: "/login" });
     }
   },
   component: () => <Outlet />,
