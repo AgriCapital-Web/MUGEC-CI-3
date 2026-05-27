@@ -26,7 +26,7 @@ export const getAuthorizedArea = createServerFn({ method: "GET" })
     }
     const roles = (data ?? []).map((r: { role: string }) => String(r.role));
     const isSuperAdmin = roles.includes("super_admin");
-    const isAdmin = roles.some((r) => ADMIN_ROLES.has(r));
+    const isAdmin = roles.some((r: string) => ADMIN_ROLES.has(r));
     if (isSuperAdmin) return { area: "miprojet" as const, isSuperAdmin: true };
     if (isAdmin) return { area: "admin" as const, isSuperAdmin: false };
     return { area: "membre" as const, isSuperAdmin: false };
