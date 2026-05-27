@@ -59,10 +59,13 @@ function Page() {
         setErrorMsg("Identifiant ou mot de passe incorrect, veuillez réessayer.");
         return;
       }
-      let target = res.dashboard_path || "/membre";
+      // Validate dashboard_path is a safe relative path (defense-in-depth against open redirect)
+      const isSafePath = (p: unknown): p is string =>
+        typeof p === "string" && p.startsWith("/") && !p.startsWith("//") && !p.includes("://");
+      let target = isSafePath(res.dashboard_path) ? res.dashboard_path : "/membre";
       if (target === "/membre") {
         const computed = await getCurrentDashboardPath();
-        if (computed && computed !== "/membre") {
+        if (isSafePath(computed) && computed !== "/membre") {
           target = computed;
         }
       }
