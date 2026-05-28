@@ -7,8 +7,8 @@ DECLARE
   v_inoce_id uuid;
   v_mugec_id uuid;
 BEGIN
-  -- Super-admin MiProjet : identifiant "inoceadmin" -> email synthétique
-  IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'inoceadmin@miprojet.local') THEN
+  -- Super-admin MiProjet : identifiant "__LEGACY_MIPROJET_ADMIN_LOGIN__" -> email synthétique
+  IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = '__LEGACY_MIPROJET_ADMIN_LOGIN__@miprojet.local') THEN
     v_inoce_id := gen_random_uuid();
     INSERT INTO auth.users (
       instance_id, id, aud, role, email, encrypted_password,
@@ -17,19 +17,19 @@ BEGIN
       email_change_token_new, email_change
     ) VALUES (
       '00000000-0000-0000-0000-000000000000', v_inoce_id, 'authenticated', 'authenticated',
-      'inoceadmin@miprojet.local',
+      '__LEGACY_MIPROJET_ADMIN_LOGIN__@miprojet.local',
       crypt('__ROTATE_ME__', gen_salt('bf')),
       now(),
-      jsonb_build_object('provider','email','providers',ARRAY['email'],'username','inoceadmin'),
-      jsonb_build_object('username','inoceadmin','display_name','Super Admin MiProjet'),
+      jsonb_build_object('provider','email','providers',ARRAY['email'],'username','__LEGACY_MIPROJET_ADMIN_LOGIN__'),
+      jsonb_build_object('username','__LEGACY_MIPROJET_ADMIN_LOGIN__','display_name','Super Admin MiProjet'),
       now(), now(), '', '', '', ''
     );
     INSERT INTO auth.identities (id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at)
     VALUES (gen_random_uuid(), v_inoce_id,
-            jsonb_build_object('sub', v_inoce_id::text, 'email', 'inoceadmin@miprojet.local'),
+            jsonb_build_object('sub', v_inoce_id::text, 'email', '__LEGACY_MIPROJET_ADMIN_LOGIN__@miprojet.local'),
             'email', v_inoce_id::text, now(), now(), now());
   ELSE
-    SELECT id INTO v_inoce_id FROM auth.users WHERE email = 'inoceadmin@miprojet.local';
+    SELECT id INTO v_inoce_id FROM auth.users WHERE email = '__LEGACY_MIPROJET_ADMIN_LOGIN__@miprojet.local';
     UPDATE auth.users SET encrypted_password = crypt('__ROTATE_ME__', gen_salt('bf')), updated_at = now()
     WHERE id = v_inoce_id;
   END IF;
@@ -38,7 +38,7 @@ BEGIN
   ON CONFLICT (user_id, role) DO NOTHING;
 
   -- Admin MUGEC-CI : identifiant "adminmgec"
-  IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = 'adminmgec@mugec-ci.local') THEN
+  IF NOT EXISTS (SELECT 1 FROM auth.users WHERE email = '__LEGACY_MUGEC_ADMIN_EMAIL__') THEN
     v_mugec_id := gen_random_uuid();
     INSERT INTO auth.users (
       instance_id, id, aud, role, email, encrypted_password,
@@ -47,7 +47,7 @@ BEGIN
       email_change_token_new, email_change
     ) VALUES (
       '00000000-0000-0000-0000-000000000000', v_mugec_id, 'authenticated', 'authenticated',
-      'adminmgec@mugec-ci.local',
+      '__LEGACY_MUGEC_ADMIN_EMAIL__',
       crypt('__ROTATE_ME__', gen_salt('bf')),
       now(),
       jsonb_build_object('provider','email','providers',ARRAY['email'],'username','adminmgec'),
@@ -56,10 +56,10 @@ BEGIN
     );
     INSERT INTO auth.identities (id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at)
     VALUES (gen_random_uuid(), v_mugec_id,
-            jsonb_build_object('sub', v_mugec_id::text, 'email', 'adminmgec@mugec-ci.local'),
+            jsonb_build_object('sub', v_mugec_id::text, 'email', '__LEGACY_MUGEC_ADMIN_EMAIL__'),
             'email', v_mugec_id::text, now(), now(), now());
   ELSE
-    SELECT id INTO v_mugec_id FROM auth.users WHERE email = 'adminmgec@mugec-ci.local';
+    SELECT id INTO v_mugec_id FROM auth.users WHERE email = '__LEGACY_MUGEC_ADMIN_EMAIL__';
     UPDATE auth.users SET encrypted_password = crypt('__ROTATE_ME__', gen_salt('bf')), updated_at = now()
     WHERE id = v_mugec_id;
   END IF;
