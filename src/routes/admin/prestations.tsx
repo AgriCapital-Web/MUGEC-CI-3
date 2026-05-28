@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { validatePrestationStep } from "@/lib/prestations.functions";
 import { FileCheck, Search, CheckCircle2, XCircle, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/admin/prestations")({ component: PrestationsPage });
@@ -44,6 +46,7 @@ type Validation = {
 function fmt(n: number | null | undefined) { return `${(n ?? 0).toLocaleString("fr-FR")} F`; }
 
 function PrestationsPage() {
+  const validateStep = useServerFn(validatePrestationStep);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -111,10 +114,12 @@ function PrestationsPage() {
     if (action === "rejete" && motif.trim().length < 3) {
       toast.error("Motif requis pour un rejet"); return;
     }
-    const { error } = await supabase.rpc("validate_prestation_step", {
-      _request_id: current.id, _action: action, _motif: motif || undefined,
-    });
-    if (error) { toast.error(error.message); return; }
+    try {
+      await validateStep({ data: { requestId: current.id, action, motif: motif || undefined } });
+    } catch (error: any) {
+      toast.error(error?.message ?? "Validation impossible");
+      return;
+    }
     toast.success(action === "valide" ? "Validation enregistrée" : "Demande rejetée");
     setOpen(false);
     await load();
