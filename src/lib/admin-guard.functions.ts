@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const ADMIN_ROLES = new Set<string>([
   "super_admin", "admin_national", "admin_regional", "admin_local", "agent_saisie",
@@ -16,8 +17,8 @@ const ADMIN_ROLES = new Set<string>([
 export const getAuthorizedArea = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context as { supabase: any; userId: string };
-    const { data, error } = await supabase
+    const { userId } = context as { userId: string };
+    const { data, error } = await supabaseAdmin
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
