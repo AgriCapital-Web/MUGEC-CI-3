@@ -5,8 +5,8 @@ import { getAuthorizedArea } from "@/lib/admin-guard.functions";
 export const Route = createFileRoute("/admin")({
   ssr: false,
   beforeLoad: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
       throw redirect({ to: "/login" });
     }
 
@@ -21,7 +21,7 @@ export const Route = createFileRoute("/admin")({
       return;
     } catch (e: any) {
       // Re-throw router redirects
-      if (e && typeof e === "object" && "to" in e) throw e;
+      if (e && typeof e === "object" && ("to" in e || "href" in e || "statusCode" in e)) throw e;
       throw redirect({ to: "/login" });
     }
   },
