@@ -175,14 +175,6 @@ function MiProjetDashboard() {
       ? Math.round(((stats?.transactions_paye ?? 0) / (stats?.transactions_total ?? 1)) * 100)
       : 0;
 
-  if (authorized === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
-        Vérification des droits…
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen" style={{ background: "var(--gradient-surface)" }}>
       <DashboardHeader title="Back-office Super Admin" nav={MIPROJET_NAV} />
