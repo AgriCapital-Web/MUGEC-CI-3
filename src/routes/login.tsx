@@ -12,12 +12,13 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { loginWithIdentifier } from "@/lib/login.functions";
 import { getCurrentDashboardPath } from "@/lib/auth";
+import { isSafePath, normalizeDashboardPath } from "@/lib/auth-routing";
 import logo from "@/assets/mugec-logo.png";
 
 export const Route = createFileRoute("/login")({
   beforeLoad: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
       const redirectPath = await getCurrentDashboardPath();
       if (redirectPath) {
         throw redirect({ to: redirectPath });
@@ -59,10 +60,7 @@ function Page() {
         setErrorMsg("Identifiant ou mot de passe incorrect, veuillez réessayer.");
         return;
       }
-      // Validate dashboard_path is a safe relative path (defense-in-depth against open redirect)
-      const isSafePath = (p: unknown): p is string =>
-        typeof p === "string" && p.startsWith("/") && !p.startsWith("//") && !p.includes("://");
-      let target = isSafePath(res.dashboard_path) ? res.dashboard_path : "/membre";
+      let target = normalizeDashboardPath(res.dashboard_path);
       if (target === "/membre") {
         const computed = await getCurrentDashboardPath();
         if (isSafePath(computed) && computed !== "/membre") {
