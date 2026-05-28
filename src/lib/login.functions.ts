@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { normalizeDashboardPath } from "@/lib/auth-routing";
 
 const inputSchema = z.object({
   identifier: z.string().trim().min(3).max(255),
@@ -58,8 +59,12 @@ export const loginWithIdentifier = createServerFn({ method: "POST" })
 
     if (!email) return generic;
 
-    const SUPABASE_URL = process.env.SUPABASE_URL!;
-    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY!;
+    const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+      console.error("loginWithIdentifier: missing Supabase runtime configuration");
+      return generic;
+    }
     const authClient = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
     });
@@ -77,9 +82,8 @@ export const loginWithIdentifier = createServerFn({ method: "POST" })
         "dashboard_path_for",
         { _user_id: signIn.user.id },
       );
-      // Defense in depth: only accept safe relative paths
-      if (!pathErr && typeof path === "string" && path.startsWith("/") && !path.startsWith("//") && !path.includes("://")) {
-        dashboard_path = path;
+      if (!pathErr) {
+        dashboard_path = normalizeDashboardPath(path);
       }
     } catch (err) {
       console.error("loginWithIdentifier: dashboard_path_for failed", err instanceof Error ? err.message : String(err));
