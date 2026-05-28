@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "./supabase";
+import { getAuthorizedArea } from "@/lib/admin-guard.functions";
+import { areaToDashboardPath } from "@/lib/auth-routing";
 
 type Ctx = {
   user: User | null;
@@ -28,9 +30,10 @@ export async function getCurrentSupabaseUser(): Promise<User | null> {
 export async function getCurrentDashboardPath(): Promise<string | null> {
   if (!isSupabaseConfigured) return null;
   try {
-    const { data, error } = await supabase.rpc("current_user_dashboard_path");
-    if (error || !data) return null;
-    return typeof data === "string" ? data : String(data);
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) return null;
+    const area = await getAuthorizedArea();
+    return areaToDashboardPath(area.area);
   } catch {
     return null;
   }
