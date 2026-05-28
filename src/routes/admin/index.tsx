@@ -17,6 +17,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { getAdminDashboardStats } from "@/lib/admin-stats.functions";
 import {
   MoreHorizontal, Eye, Users, Wallet, FileCheck,
   UserCheck, UserMinus, Activity, ArrowUpRight, Search, Sparkles,
@@ -47,6 +49,7 @@ const PAGE = 50;
 const STATUTS = ["actif", "en_attente", "suspendu", "decede", "marie", "licencie", "assiste", "retraite"];
 
 function AdminDashboard() {
+  const fetchStats = useServerFn(getAdminDashboardStats);
   const [stats, setStats] = useState<Stats | null>(null);
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [page, setPage] = useState(0);
@@ -58,8 +61,12 @@ function AdminDashboard() {
   const [trend, setTrend] = useState<{ mois: string; inscriptions: number; cotisations: number }[]>([]);
 
   async function loadStats() {
-    const { data, error } = await supabase.rpc("admin_dashboard_stats");
-    if (!error && data) setStats(data as Stats);
+    try {
+      const data = await fetchStats();
+      if (data) setStats(data as Stats);
+    } catch (error) {
+      toast.error("Impossible de charger les statistiques admin.");
+    }
   }
   async function loadMembers() {
     setLoading(true);
