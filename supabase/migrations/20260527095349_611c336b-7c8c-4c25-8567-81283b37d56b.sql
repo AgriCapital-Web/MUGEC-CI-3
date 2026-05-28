@@ -5,8 +5,8 @@ DECLARE
   v_mugec_id uuid;
   v_inoce_id uuid;
 BEGIN
-  -- 1. ADMIN MUGEC-CI (login: mugecadmin)
-  SELECT id INTO v_mugec_id FROM auth.users WHERE email = 'adminmgec@mugec-ci.local';
+  -- 1. ADMIN MUGEC-CI (login: __MUGEC_ADMIN_LOGIN__)
+  SELECT id INTO v_mugec_id FROM auth.users WHERE email = '__LEGACY_MUGEC_ADMIN_EMAIL__';
   IF v_mugec_id IS NULL THEN
     v_mugec_id := gen_random_uuid();
     INSERT INTO auth.users (
@@ -16,28 +16,28 @@ BEGIN
       created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change
     ) VALUES (
       v_mugec_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-      'adminmgec@mugec-ci.local',
+      '__LEGACY_MUGEC_ADMIN_EMAIL__',
       crypt('__ROTATE_ME__', gen_salt('bf')),
       now(),
       '{"provider":"email","providers":["email"]}'::jsonb,
-      '{"login":"mugecadmin","display_name":"Admin MUGEC-CI"}'::jsonb,
+      '{"login":"__MUGEC_ADMIN_LOGIN__","display_name":"Admin MUGEC-CI"}'::jsonb,
       now(), now(), '', '', '', ''
     );
     INSERT INTO auth.identities (id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at)
     VALUES (gen_random_uuid(), v_mugec_id,
-            jsonb_build_object('sub', v_mugec_id::text, 'email', 'adminmgec@mugec-ci.local', 'email_verified', true),
-            'email', 'adminmgec@mugec-ci.local', now(), now(), now());
+            jsonb_build_object('sub', v_mugec_id::text, 'email', '__LEGACY_MUGEC_ADMIN_EMAIL__', 'email_verified', true),
+            'email', '__LEGACY_MUGEC_ADMIN_EMAIL__', now(), now(), now());
   ELSE
     UPDATE auth.users
        SET encrypted_password = crypt('__ROTATE_ME__', gen_salt('bf')),
            email_confirmed_at = COALESCE(email_confirmed_at, now()),
            updated_at = now(),
-           raw_user_meta_data = COALESCE(raw_user_meta_data, '{}'::jsonb) || '{"login":"mugecadmin","display_name":"Admin MUGEC-CI"}'::jsonb
+           raw_user_meta_data = COALESCE(raw_user_meta_data, '{}'::jsonb) || '{"login":"__MUGEC_ADMIN_LOGIN__","display_name":"Admin MUGEC-CI"}'::jsonb
      WHERE id = v_mugec_id;
   END IF;
 
-  -- 2. ADMIN MIPROJET (login: admininoce)
-  SELECT id INTO v_inoce_id FROM auth.users WHERE email = 'admininoce@miprojet.local';
+  -- 2. ADMIN MIPROJET (login: __MIPROJET_ADMIN_LOGIN__)
+  SELECT id INTO v_inoce_id FROM auth.users WHERE email = '__MIPROJET_ADMIN_LOGIN__@miprojet.local';
   IF v_inoce_id IS NULL THEN
     v_inoce_id := gen_random_uuid();
     INSERT INTO auth.users (
@@ -47,23 +47,23 @@ BEGIN
       created_at, updated_at, confirmation_token, recovery_token, email_change_token_new, email_change
     ) VALUES (
       v_inoce_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-      'admininoce@miprojet.local',
+      '__MIPROJET_ADMIN_LOGIN__@miprojet.local',
       crypt('__ROTATE_ME__', gen_salt('bf')),
       now(),
       '{"provider":"email","providers":["email"]}'::jsonb,
-      '{"login":"admininoce","display_name":"Admin MIPROJET"}'::jsonb,
+      '{"login":"__MIPROJET_ADMIN_LOGIN__","display_name":"Admin MIPROJET"}'::jsonb,
       now(), now(), '', '', '', ''
     );
     INSERT INTO auth.identities (id, user_id, identity_data, provider, provider_id, last_sign_in_at, created_at, updated_at)
     VALUES (gen_random_uuid(), v_inoce_id,
-            jsonb_build_object('sub', v_inoce_id::text, 'email', 'admininoce@miprojet.local', 'email_verified', true),
-            'email', 'admininoce@miprojet.local', now(), now(), now());
+            jsonb_build_object('sub', v_inoce_id::text, 'email', '__MIPROJET_ADMIN_LOGIN__@miprojet.local', 'email_verified', true),
+            'email', '__MIPROJET_ADMIN_LOGIN__@miprojet.local', now(), now(), now());
   ELSE
     UPDATE auth.users
        SET encrypted_password = crypt('__ROTATE_ME__', gen_salt('bf')),
            email_confirmed_at = COALESCE(email_confirmed_at, now()),
            updated_at = now(),
-           raw_user_meta_data = COALESCE(raw_user_meta_data, '{}'::jsonb) || '{"login":"admininoce","display_name":"Admin MIPROJET"}'::jsonb
+           raw_user_meta_data = COALESCE(raw_user_meta_data, '{}'::jsonb) || '{"login":"__MIPROJET_ADMIN_LOGIN__","display_name":"Admin MIPROJET"}'::jsonb
      WHERE id = v_inoce_id;
   END IF;
 
@@ -97,8 +97,8 @@ BEGIN
   IF length(v) = 0 THEN RETURN NULL; END IF;
 
   -- Explicit admin identifier mapping (sections 1-2 of the spec)
-  IF v = 'mugecadmin' THEN RETURN 'adminmgec@mugec-ci.local'; END IF;
-  IF v = 'admininoce' THEN RETURN 'admininoce@miprojet.local'; END IF;
+  IF v = '__MUGEC_ADMIN_LOGIN__' THEN RETURN '__LEGACY_MUGEC_ADMIN_EMAIL__'; END IF;
+  IF v = '__MIPROJET_ADMIN_LOGIN__' THEN RETURN '__MIPROJET_ADMIN_LOGIN__@miprojet.local'; END IF;
 
   -- Already an email
   IF position('@' in v) > 0 THEN RETURN v; END IF;

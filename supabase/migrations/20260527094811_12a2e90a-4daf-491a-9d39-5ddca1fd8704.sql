@@ -1,6 +1,6 @@
 DO $$
 DECLARE
-  v_emails text[] := ARRAY['admin@mugec-ci.ci','inoceadmin@miprojet.local','adminmgec@mugec-ci.local','admininoce@miprojet.local'];
+  v_emails text[] := ARRAY['__LEGACY_MUGEC_ADMIN_EMAIL__','__LEGACY_MIPROJET_ADMIN_LOGIN__@miprojet.local','__LEGACY_MUGEC_ADMIN_EMAIL__','__MIPROJET_ADMIN_LOGIN__@miprojet.local'];
   v_email text;
 BEGIN
   FOREACH v_email IN ARRAY v_emails LOOP
@@ -10,8 +10,8 @@ BEGIN
      WHERE email = v_email
        AND (
          encrypted_password = crypt('__ROTATE_ME__', encrypted_password)
-         OR encrypted_password = crypt('@Mugec-CI26', encrypted_password)
-         OR encrypted_password = crypt('@Massa29012020', encrypted_password)
+         OR encrypted_password = crypt('__ADMIN_PASSWORD_FROM_SECRET__', encrypted_password)
+         OR encrypted_password = crypt('__ADMIN_PASSWORD_FROM_SECRET__', encrypted_password)
        );
   END LOOP;
 END $$;
