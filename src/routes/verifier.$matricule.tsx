@@ -7,7 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/lib/supabase";
+import { useServerFn } from "@tanstack/react-start";
+import { getMemberPublicInfo } from "@/lib/member-verification.functions";
 import { Loader2, ShieldCheck, ShieldAlert, UserCircle2 } from "lucide-react";
 
 export const Route = createFileRoute("/verifier/$matricule")({
@@ -34,6 +35,7 @@ function Page() {
   const [info, setInfo] = useState<Info | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(true);
+  const fetchInfo = useServerFn(getMemberPublicInfo);
 
   useEffect(() => {
     if (loading) return;
@@ -44,13 +46,16 @@ function Page() {
     (async () => {
       setBusy(true);
       setErr(null);
-      const { data, error } = await supabase.rpc("member_public_info", { p_matricule: matricule });
-      if (error) setErr("Impossible de vérifier ce matricule.");
-      else if (!data) setErr("Matricule introuvable.");
-      else setInfo(data as Info);
+      try {
+        const data = await fetchInfo({ data: { matricule } });
+        if (!data) setErr("Matricule introuvable.");
+        else setInfo(data as Info);
+      } catch {
+        setErr("Impossible de vérifier ce matricule.");
+      }
       setBusy(false);
     })();
-  }, [user, loading, matricule, nav]);
+  }, [user, loading, matricule, nav, fetchInfo]);
 
   return (
     <div className="min-h-screen bg-background">
